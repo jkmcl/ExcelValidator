@@ -1,0 +1,4 @@
+Person/Email=isAlpha
+Person/Last Name=isNumeric
+Inventory/Asset ID=isNumeric
+Inventory/Asset Name=isAlpha
