@@ -5,7 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -15,7 +16,7 @@ import org.apache.poi.ss.util.CellReference;
 
 public class WorkbookValidator {
 
-	private final Logger log = Logger.getLogger(WorkbookValidator.class);
+	private final Logger log = LogManager.getLogger(WorkbookValidator.class);
 
 	private RulesManager rmgr = new RulesManager();
 
