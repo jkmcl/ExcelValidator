@@ -9,9 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class RulesManager {
+
+	private final Logger log = LogManager.getLogger(RulesManager.class);
 
 	// workbook->(sheet->(column->rule))
 	private Map<String, Map<String, Map<String, String>>> workbookMap = new HashMap<>();
@@ -48,7 +52,7 @@ public class RulesManager {
 	}
 
 	public void printMap() {
-		System.out.println(workbookMap);
+		log.info(workbookMap);
 	}
 
 	public void loadRules(Path filePath) throws IOException {
@@ -74,10 +78,10 @@ public class RulesManager {
 				String sheet = arr[0];
 				String col = arr[1];
 
-				System.out.println("Sheet: " + sheet);
-				System.out.println("Column: " + col);
-				System.out.println("Rule: " + rule);
-				System.out.println("--");
+				log.info("Sheet: {}", sheet);
+				log.info("Column: {}", col);
+				log.info("Rule: {}", rule);
+				log.info("--");
 
 				addRule(fileName, sheet, col, rule);
 			}

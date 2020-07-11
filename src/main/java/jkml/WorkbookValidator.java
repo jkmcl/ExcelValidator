@@ -48,7 +48,7 @@ public class WorkbookValidator {
 
 		// Validate sheets that have rules in the order they appear in the workbook
 		Collections.sort(sheetIndexList);
-		log.debug("Sheet index list:" + sheetIndexList);
+		log.debug("Sheet index list: {}", sheetIndexList);
 		for (int sheetIndex : sheetIndexList) {
 			Sheet sheet = workbook.getSheetAt(sheetIndex);
 			String sheetName = sheet.getSheetName();
@@ -91,7 +91,7 @@ public class WorkbookValidator {
 
 		// Validate columns that have rules in the order they appear in the sheet
 		Collections.sort(columnIndexList);
-		log.debug("Column index list:" + columnIndexList);
+		log.debug("Column index list: {}", columnIndexList);
 		for (int rowIndex = 1, maxRowIndex = sheet.getLastRowNum(); rowIndex <= maxRowIndex; ++rowIndex) {
 			Row row = sheet.getRow(rowIndex);
 			for (int colIndex : columnIndexList) {
@@ -114,7 +114,8 @@ public class WorkbookValidator {
 
 	private boolean validateCell(Cell cell, String rule, List<String> errors) {
 		CellReference cellRef = new CellReference(cell);
-		log.debug(String.format("Validating sheet \"%s\" and cell \"%s\"", cell.getSheet().getSheetName(), cellRef.formatAsString()));
+		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), cellRef.formatAsString());
+		log.debug("Rule: {}", rule);
 		return true;
 	}
 
