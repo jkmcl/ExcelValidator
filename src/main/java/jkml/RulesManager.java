@@ -64,7 +64,7 @@ public class RulesManager {
 			// Go through each line
 			for (String line = br.readLine(); line != null; line = br.readLine()) {
 				// Skip blank and commented lines
-				if (StringUtils.isBlank(line) || line.charAt(0) == '#') {
+				if (line.isBlank() || line.charAt(0) == '#') {
 					continue;
 				}
 
