@@ -16,7 +16,7 @@ class WorkbookValidatorTests {
 
 	@Test
 	void test() throws Exception {
-		Path filePath = Path.of(this.getClass().getClassLoader().getResource(RULES_FILE).toURI());
+		Path filePath = TestUtils.getResourceAsPath(RULES_FILE);
 		RulesManager rmgr = new RulesManager();
 		rmgr.loadRules(filePath);
 

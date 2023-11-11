@@ -112,6 +112,7 @@ public class WorkbookValidator {
 		return ret;
 	}
 
+	// TODO: implement this method!
 	private boolean validateCell(Cell cell, String rule, List<String> errors) {
 		CellReference cellRef = new CellReference(cell);
 		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), cellRef.formatAsString());
