@@ -18,7 +18,7 @@ public class WorkbookValidator {
 
 	private final Logger log = LogManager.getLogger(WorkbookValidator.class);
 
-	private RulesManager rmgr = new RulesManager();
+	private final RulesManager rmgr;
 
 	public WorkbookValidator(RulesManager rmgr) {
 		this.rmgr = rmgr;

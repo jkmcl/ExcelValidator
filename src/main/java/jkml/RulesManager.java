@@ -26,28 +26,8 @@ public class RulesManager {
 	}
 
 	public void addRule(String workbookType, String sheetName, String columnName, String rule) {
-
-		Map<String, Map<String, String>> sheetMap = null;
-		Map<String, String> columnMap = null;
-
-		// Workbook not found
-		if ((sheetMap = workbookMap.get(workbookType)) == null) {
-			sheetMap = new HashMap<>();
-			columnMap = new HashMap<>();
-			columnMap.put(columnName, rule);
-			sheetMap.put(sheetName, columnMap);
-			workbookMap.put(workbookType, sheetMap);
-			return;
-		}
-
-		// Sheet not found
-		if ((columnMap = sheetMap.get(sheetName)) == null) {
-			columnMap = new HashMap<>();
-			columnMap.put(columnName, rule);
-			sheetMap.put(sheetName, columnMap);
-			return;
-		}
-
+		var sheetMap = workbookMap.computeIfAbsent(workbookType, k -> new HashMap<>());
+		var columnMap = sheetMap.computeIfAbsent(sheetName, k -> new HashMap<>());
 		columnMap.put(columnName, rule);
 	}
 
