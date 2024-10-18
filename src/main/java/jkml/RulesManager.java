@@ -17,7 +17,7 @@ public class RulesManager {
 
 	private final Logger log = LogManager.getLogger(RulesManager.class);
 
-	// workbook->(sheet->(column->rule))
+	// workbook->(sheet->(column->checker))
 	private Map<String, Map<String, Map<String, String>>> workbookMap = new HashMap<>();
 
 
@@ -25,10 +25,10 @@ public class RulesManager {
 		return workbookMap.get(workbookType);
 	}
 
-	public void addRule(String workbookType, String sheetName, String columnName, String rule) {
+	public void addRule(String workbookType, String sheetName, String columnName, String checkerName) {
 		var sheetMap = workbookMap.computeIfAbsent(workbookType, k -> new HashMap<>());
 		var columnMap = sheetMap.computeIfAbsent(sheetName, k -> new HashMap<>());
-		columnMap.put(columnName, rule);
+		columnMap.put(columnName, checkerName);
 	}
 
 	public void printMap() {
@@ -51,19 +51,19 @@ public class RulesManager {
 				// Split line
 				String[] arr = StringUtils.split(line, "=", 2);
 				String key = arr[0];
-				String rule = arr[1];
+				String checker = arr[1];
 
 				// Create entry in map
 				arr = StringUtils.split(key, "/", 2);
 				String sheet = arr[0];
 				String col = arr[1];
 
-				log.info("Sheet:  {}", sheet);
-				log.info("Column: {}", col);
-				log.info("Rule:   {}", rule);
+				log.info("Sheet:   {}", sheet);
+				log.info("Column:  {}", col);
+				log.info("Checker: {}", checker);
 				log.info("--");
 
-				addRule(fileName, sheet, col, rule);
+				addRule(fileName, sheet, col, checker);
 			}
 		}
 	}

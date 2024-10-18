@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
@@ -96,6 +95,7 @@ public class WorkbookValidator {
 		// Validate columns that have rules in the order they appear in the sheet
 		Collections.sort(columnIndexList);
 		log.debug("Column index list: {}", columnIndexList);
+		var sheetName = sheet.getSheetName();
 		for (int rowIndex = 1, maxRowIndex = sheet.getLastRowNum(); rowIndex <= maxRowIndex; ++rowIndex) {
 			Row row = sheet.getRow(rowIndex);
 			for (int colIndex : columnIndexList) {
@@ -106,8 +106,8 @@ public class WorkbookValidator {
 					ret = false;
 					continue;
 				}
-				String rule = columnMap.get(columnName);
-				if (!validateCell(cell, rule, errors)) {
+				String checkerName = columnMap.get(columnName);
+				if (!validateCell(sheetName, cell, checkerName, errors)) {
 					ret = false;
 				}
 			}
@@ -116,25 +116,21 @@ public class WorkbookValidator {
 		return ret;
 	}
 
-	private boolean validateCell(Cell cell, String rule, List<String> errors) {
+	private boolean validateCell(String sheetName, Cell cell, String checkerName, List<String> errors) {
 		var value = dataFormatter.formatCellValue(cell);
 		var address = cell.getAddress();
 
 		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), address);
-		log.debug("Rule: {}; Value: {}", rule, value);
+		log.debug("Rule: {}; Value: {}", checkerName, value);
 
-		if ("isNumeric".equals(rule) && !StringUtils.isNumeric(value)) {
-			errors.add(String.format("Cell %s value is not numeric: %s", address, value));
-			return false;
+		var checker = Checkers.get(checkerName);
+
+		if (checker == null) {
+			return true;
 		}
 
-		if ("isAlpha".equals(rule) && !StringUtils.isAlpha(value)) {
-			errors.add(String.format("Cell %s value is not alphabetic: %s", address, value));
-			return false;
-		}
-
-		if ("isAlphanumeric".equals(rule) && !StringUtils.isAlphanumeric(value)) {
-			errors.add(String.format("Cell %s value is not alphanumeric: %s", address, value));
+		if (!checker.check(value)) {
+			errors.add(String.format("%s!%s contains invalid value (checker: %s): %s", sheetName, address, checkerName, value));
 			return false;
 		}
 

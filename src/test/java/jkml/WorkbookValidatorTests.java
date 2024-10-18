@@ -1,14 +1,12 @@
 package jkml;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.Test;
 
@@ -18,29 +16,41 @@ class WorkbookValidatorTests {
 
 	private static final String EXCEL_FILE = "sample.xlsx";
 
+	private static final String INVALID_EXCEL_FILE = "sample-invalid.xlsx";
+
 	private final Logger log = LogManager.getLogger(WorkbookValidatorTests.class);
 
-	@Test
-	void testValidate() throws Exception {
-		Path filePath = TestUtils.getResourceAsPath(RULES_FILE);
-		RulesManager rmgr = new RulesManager();
+	private void testValidate(String fileName, boolean valid) throws Exception {
+		var filePath = TestUtils.getResourceAsPath(RULES_FILE);
+		var rmgr = new RulesManager();
 		rmgr.loadRules(filePath);
 
-		WorkbookValidator vdtr = new WorkbookValidator(rmgr);
-		List<String> errors = new ArrayList<>();
+		var vdtr = new WorkbookValidator(rmgr);
+		var errors = new ArrayList<String>();
 
-		filePath = Path.of(this.getClass().getClassLoader().getResource(EXCEL_FILE).toURI());
+		filePath = Path.of(this.getClass().getClassLoader().getResource(fileName).toURI());
 
-
-		try (Workbook workbook = WorkbookFactory.create(filePath.toFile())) {
+		try (var workbook = WorkbookFactory.create(filePath.toFile())) {
 			var result = vdtr.validate(workbook, RULES_FILE, errors);
-			log.info("Errors:");
-			for (var err : errors) {
-				log.info("{}", err);
+			if (!errors.isEmpty()) {
+				log.info("Errors:");
+				for (var err : errors) {
+					log.info("{}", err);
+				}
 			}
-			assertTrue(result);
-			assertTrue(errors.isEmpty());
+			assertEquals(valid, result);
+			assertEquals(valid, errors.isEmpty());
 		}
+	}
+
+	@Test
+	void testValidate_valid() throws Exception {
+		testValidate(EXCEL_FILE, true);
+	}
+
+	@Test
+	void testValidate_invalid() throws Exception {
+		testValidate(INVALID_EXCEL_FILE, false);
 	}
 
 }
