@@ -1,4 +1,5 @@
-Person/Email=isAlpha
-Person/Last Name=isNumeric
+Person/Last Name=isAlpha
+Person/First Name=isAlpha
+Person/Mobile=isNumeric
 Inventory/Asset ID=isNumeric
-Inventory/Asset Name=isAlpha
+Inventory/Asset Name=isAlphanumeric

@@ -58,9 +58,9 @@ public class RulesManager {
 				String sheet = arr[0];
 				String col = arr[1];
 
-				log.info("Sheet: {}", sheet);
+				log.info("Sheet:  {}", sheet);
 				log.info("Column: {}", col);
-				log.info("Rule: {}", rule);
+				log.info("Rule:   {}", rule);
 				log.info("--");
 
 				addRule(fileName, sheet, col, rule);

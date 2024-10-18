@@ -5,9 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -17,6 +19,8 @@ import org.apache.poi.ss.util.CellReference;
 public class WorkbookValidator {
 
 	private final Logger log = LogManager.getLogger(WorkbookValidator.class);
+
+	private final DataFormatter dataFormatter = new DataFormatter();
 
 	private final RulesManager rmgr;
 
@@ -112,11 +116,28 @@ public class WorkbookValidator {
 		return ret;
 	}
 
-	// TODO: implement this method!
 	private boolean validateCell(Cell cell, String rule, List<String> errors) {
-		CellReference cellRef = new CellReference(cell);
-		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), cellRef.formatAsString());
-		log.debug("Rule: {}", rule);
+		var value = dataFormatter.formatCellValue(cell);
+		var address = cell.getAddress();
+
+		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), address);
+		log.debug("Rule: {}; Value: {}", rule, value);
+
+		if ("isNumeric".equals(rule) && !StringUtils.isNumeric(value)) {
+			errors.add(String.format("Cell %s value is not numeric: %s", address, value));
+			return false;
+		}
+
+		if ("isAlpha".equals(rule) && !StringUtils.isAlpha(value)) {
+			errors.add(String.format("Cell %s value is not alphabetic: %s", address, value));
+			return false;
+		}
+
+		if ("isAlphanumeric".equals(rule) && !StringUtils.isAlphanumeric(value)) {
+			errors.add(String.format("Cell %s value is not alphanumeric: %s", address, value));
+			return false;
+		}
+
 		return true;
 	}
 
