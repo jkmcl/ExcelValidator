@@ -16,7 +16,7 @@ public class RulesManager {
 	private final Logger logger = LogManager.getLogger(RulesManager.class);
 
 	// workbook->(sheet->(column->checker))
-	private Map<String, Map<String, Map<String, String>>> sheetMap = new HashMap<>();
+	private final Map<String, Map<String, Map<String, String>>> sheetMap = new HashMap<>();
 
 	// Returns sheet->(column->checker)
 	public Map<String, Map<String, String>> getColumnMap(String workbookType) {
