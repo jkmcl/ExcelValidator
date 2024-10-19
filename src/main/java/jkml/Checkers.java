@@ -27,7 +27,11 @@ public class Checkers {
 			NUMBERIC_SPACE, StringUtils::isNumericSpace);
 
 	public static Checker get(String name) {
-		return CHECKER_MAP.get(name);
+		var checker = CHECKER_MAP.get(name);
+		if (checker == null) {
+			throw new IllegalArgumentException("Invalid name: " + name);
+		}
+		return checker;
 	}
 
 	private Checkers() {

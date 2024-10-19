@@ -14,36 +14,35 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellReference;
 
-
 public class WorkbookValidator {
 
-	private final Logger log = LogManager.getLogger(WorkbookValidator.class);
+	private final Logger logger = LogManager.getLogger(WorkbookValidator.class);
 
 	private final DataFormatter dataFormatter = new DataFormatter();
 
-	private final RulesManager rmgr;
+	private final RulesManager rulesManager;
 
-	public WorkbookValidator(RulesManager rmgr) {
-		this.rmgr = rmgr;
+	public WorkbookValidator(RulesManager rulesManager) {
+		this.rulesManager = rulesManager;
 	}
 
 	public boolean validate(Workbook workbook, String workbookType, List<String> errors) {
-		Map<String, Map<String, String>> sheetMap = rmgr.getSheetMap(workbookType);
+		var columnMap = rulesManager.getColumnMap(workbookType);
 
 		// This workbook type has no rule
-		if (sheetMap == null) {
+		if (columnMap == null) {
 			return true;
 		}
 
-		boolean ret = true;
+		var result = true;
 
 		// Get index of sheets that have rules in the workbook
-		List<Integer> sheetIndexList = new ArrayList<>(sheetMap.size());
-		for (String sheetName : sheetMap.keySet()) {
-			int sheetIndex = workbook.getSheetIndex(sheetName);
+		var sheetIndexList = new ArrayList<Integer>(columnMap.size());
+		for (var sheetName : columnMap.keySet()) {
+			var sheetIndex = workbook.getSheetIndex(sheetName);
 			if (sheetIndex < 0) {
 				errors.add("Sheet not found: " + sheetName);
-				ret = false;
+				result = false;
 				continue;
 			}
 			sheetIndexList.add(sheetIndex);
@@ -51,23 +50,22 @@ public class WorkbookValidator {
 
 		// Validate sheets that have rules in the order they appear in the workbook
 		Collections.sort(sheetIndexList);
-		log.debug("Sheet index list: {}", sheetIndexList);
-		for (int sheetIndex : sheetIndexList) {
-			Sheet sheet = workbook.getSheetAt(sheetIndex);
-			String sheetName = sheet.getSheetName();
-			Map<String, String> columnMap = sheetMap.get(sheetName);
-			if (!validateSheet(sheet, columnMap, errors)) {
-				ret = false;
+		for (var sheetIndex : sheetIndexList) {
+			var sheet = workbook.getSheetAt(sheetIndex);
+			var sheetName = sheet.getSheetName();
+			var checkerMap = columnMap.get(sheetName);
+			if (!validateSheet(sheet, checkerMap, errors)) {
+				result = false;
 			}
 		}
 
-		return ret;
+		return result;
 	}
 
 	/** Given row and cell value, return the index of the column containing the cell value */
 	private int getColumnIndex(Row row, String columnName) {
 		for (int i = row.getFirstCellNum(), n = row.getLastCellNum(); i < n; ++i) {
-			Cell cell = row.getCell(i);
+			var cell = row.getCell(i);
 			if (cell != null && cell.getStringCellValue().equals(columnName)) {
 				return i;
 			}
@@ -77,16 +75,19 @@ public class WorkbookValidator {
 
 	/** Validate a sheet */
 	private boolean validateSheet(Sheet sheet, Map<String, String> columnMap, List<String> errors) {
-		boolean ret = true;
+		var sheetName = sheet.getSheetName();
+		logger.info("Validating sheet: {}", sheetName);
+
+		var result = true;
 
 		// Get index of columns that have rules in the sheet
-		List<Integer> columnIndexList = new ArrayList<>(columnMap.size());
-		Row headerRow = sheet.getRow(0);
-		for (String columnName : columnMap.keySet()) {
-			int columnIndex = getColumnIndex(headerRow, columnName);
+		var columnIndexList = new ArrayList<Integer>(columnMap.size());
+		var headerRow = sheet.getRow(0);
+		for (var columnName : columnMap.keySet()) {
+			var columnIndex = getColumnIndex(headerRow, columnName);
 			if (columnIndex < 0) {
-				errors.add(String.format("Column name (header row cell value) \"%s\" not found in sheet \"%s\"", columnName, sheet.getSheetName()));
-				ret = false;
+				errors.add(String.format("Column name (header row cell value) \"%s\" not found in sheet \"%s\"", columnName, sheetName));
+				result = false;
 				continue;
 			}
 			columnIndexList.add(columnIndex);
@@ -94,43 +95,35 @@ public class WorkbookValidator {
 
 		// Validate columns that have rules in the order they appear in the sheet
 		Collections.sort(columnIndexList);
-		log.debug("Column index list: {}", columnIndexList);
-		var sheetName = sheet.getSheetName();
 		for (int rowIndex = 1, maxRowIndex = sheet.getLastRowNum(); rowIndex <= maxRowIndex; ++rowIndex) {
-			Row row = sheet.getRow(rowIndex);
+			var row = sheet.getRow(rowIndex);
 			for (int colIndex : columnIndexList) {
-				String columnName = headerRow.getCell(colIndex).getStringCellValue();
-				Cell cell = row.getCell(colIndex);
+				var columnName = headerRow.getCell(colIndex).getStringCellValue();
+				var cell = row.getCell(colIndex);
 				if (cell == null) {
 					errors.add(String.format("Cell %s in column \"%s\"is not defined", (new CellReference(rowIndex, colIndex)).formatAsString(), columnName));
-					ret = false;
+					result = false;
 					continue;
 				}
-				String checkerName = columnMap.get(columnName);
+				var checkerName = columnMap.get(columnName);
 				if (!validateCell(sheetName, cell, checkerName, errors)) {
-					ret = false;
+					result = false;
 				}
 			}
 		}
 
-		return ret;
+		return result;
 	}
 
 	private boolean validateCell(String sheetName, Cell cell, String checkerName, List<String> errors) {
-		var value = dataFormatter.formatCellValue(cell);
-		var address = cell.getAddress();
-
-		log.debug("Validating sheet \"{}\" and cell \"{}\"", cell.getSheet().getSheetName(), address);
-		log.debug("Rule: {}; Value: {}", checkerName, value);
-
 		var checker = Checkers.get(checkerName);
-
 		if (checker == null) {
 			return true;
 		}
 
+		var value = dataFormatter.formatCellValue(cell);
 		if (!checker.check(value)) {
-			errors.add(String.format("%s!%s contains invalid value (checker: %s): %s", sheetName, address, checkerName, value));
+			errors.add(String.format("%s!%s contains invalid value (checker: %s): %s", sheetName, cell.getAddress(), checkerName, value));
 			return false;
 		}
 

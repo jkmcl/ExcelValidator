@@ -2,13 +2,15 @@ package jkml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 class WorkbookValidatorTests {
 
@@ -18,25 +20,35 @@ class WorkbookValidatorTests {
 
 	private static final String INVALID_EXCEL_FILE = "sample-invalid.xlsx";
 
-	private final Logger log = LogManager.getLogger(WorkbookValidatorTests.class);
+	private final Logger logger = LogManager.getLogger(WorkbookValidatorTests.class);
 
-	private void testValidate(String fileName, boolean valid) throws Exception {
-		var filePath = TestUtils.getResourceAsPath(RULES_FILE);
-		var rmgr = new RulesManager();
-		rmgr.loadRules(filePath);
+	@BeforeEach
+	void beforeEach(TestInfo testInfo) {
+		logger.info("# Start of test: {}", testInfo.getDisplayName());
+	}
 
-		var vdtr = new WorkbookValidator(rmgr);
+	@AfterEach
+	void afterEach() {
+		logger.info("");
+	}
+
+	private void testValidate(String xlsxFileName, boolean valid) throws Exception {
+		var xlsxFilePath = TestUtils.getResourceAsPath(xlsxFileName);
+		logger.info("Validating file: {}", xlsxFilePath);
+
+		var rulesManager = new RulesManager();
+		rulesManager.loadRules("test", TestUtils.getResourceAsPath(RULES_FILE));
+
+		var validator = new WorkbookValidator(rulesManager);
 		var errors = new ArrayList<String>();
 
-		filePath = Path.of(this.getClass().getClassLoader().getResource(fileName).toURI());
-
-		try (var workbook = WorkbookFactory.create(filePath.toFile())) {
-			var result = vdtr.validate(workbook, RULES_FILE, errors);
-			if (!errors.isEmpty()) {
-				log.info("Errors:");
-				for (var err : errors) {
-					log.info("{}", err);
-				}
+		try (var workbook = WorkbookFactory.create(xlsxFilePath.toFile())) {
+			var result = validator.validate(workbook, "test", errors);
+			if (errors.isEmpty()) {
+				logger.info("No validation error");
+			} else {
+				logger.info("Validation errors:");
+				errors.forEach(err -> logger.info("{}", err));
 			}
 			assertEquals(valid, result);
 			assertEquals(valid, errors.isEmpty());
